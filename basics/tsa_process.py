@@ -157,7 +157,7 @@ class DataPlot():
         ax=self.df[col].expanding().mean().plot(label=f'{col} expanding mean')
         ax=self.df[col].expanding().median().plot(label=f'{col} expanding median')
         ax=self.df[col].expanding().std().plot(label=f'{col} expanding std')
-        ax=self.df[col].expanding().sum().plot(label=f'{col} expanding sum')
+        # ax=self.df[col].expanding().sum().plot(label=f'{col} expanding sum')
 
         ax.legend()
         plt.grid()
@@ -170,12 +170,53 @@ class DataPlot():
         fig.suptitle(f'Rolling Window: {col.upper()}', fontsize=16)
         ax.set_title(f'{col}')
         ax=self.df[col].plot(label=f'{col}')
-        ax=self.df[col].rolling(period,center=True).mean().plot(label=f'{col} {period} Moving Avg')
+        mu=self.df[col].rolling(period,center=False).mean()
+        ax=self.df[col].rolling(period,center=False).mean().plot(label=f'{col} {period} Moving Avg')
+        sigma=self.df[col].rolling(period,center=False).std()
+        minus_2sigma=(mu-2*sigma)
+        plus_2sigma=(mu+2*sigma)
+        ax=minus_2sigma.plot(label=f'{col} {period} -2 sigma',color='red',alpha=0.2)
+        ax=plus_2sigma.plot(label=f'{col} {period} +2 sigma',color='red',alpha=0.2)
+        ax=plt.fill_between(self.df[col].index,plus_2sigma,minus_2sigma,alpha=0.2)
+        print(f'sigma:{minus_2sigma}')
         plt.legend()
         plt.grid()
         
         if self.show:
             plt.show()
+
+        self.macd('Adj Close')
+
+    def hist_plot(self,col):
+        fig, ax = plt.subplots(nrows=2,ncols=1,sharex=False,figsize=(10, 6))
+        fig.suptitle(f'Histogram Plot: {col.upper()}', fontsize=16)
+        ax[0].set_title(f'{col}')
+        ax[0].plot(self.df.loc[:, col], color='black')
+        ax[0].grid()
+
+        ax[1].set_title(f'{col}--->Histogram')
+        # ax[1].set_yscale('log')
+        ax[1].hist(self.df[col],bins=100, density=True, color='blue')
+        ax[1].grid()
+
+
+    def macd(self,col):
+        fig, ax = plt.subplots(nrows=1,ncols=1,sharex=False,figsize=(10, 6))
+        fig.suptitle(f'MACD: {col.upper()}', fontsize=16)
+        ax.set_title(f'{col}')
+
+        exp1 = self.df[col].ewm(span=12, adjust=False).mean()
+        exp2 = self.df[col].ewm(span=26, adjust=False).mean()
+        macd = exp1-exp2
+        exp3 = macd.ewm(span=9, adjust=False).mean()
+
+        ax=plt.plot(macd.index,macd,label='AMD MACD', color = '#4C0099')
+        ax=plt.plot(exp3.index,exp3,label='Signal Line', color='#FF9933')
+        plt.legend()
+        plt.grid()
+
+
+
 
 
 class TSAnalysis():
@@ -224,57 +265,27 @@ def exit_operations():
 ## MAIN----------------------------------MAIN----------------------------------MAIN
 # %%
 
-data="quicken_dsv.csv"   #"APHA.csv"
+data="TSLA.csv"    #"CBWTF.csv" #"KSHB.csv" #APHA.csv" #"quicken_dsv.csv"
 
 data_file=f'c:/my_python_programs/{client}/{data}'
 
-# apha=RawData(datafile=data_file,index_col='postedOn')
-
-# %%
-bank=RawData(datafile=data_file,index_col='postedOn')
-# %%
-bank
-# %%
-bank.df
-# %%
-bank.df.index# %%
-bank.df.info()
-# %%
-bank_amount=bank.data_sub_set('2019','2020','amount')
-bank_amount.sort_values(by=['postedOn'],ascending=True)
-# %%
-bank_amount_plots=DataPlot(df=bank_amount)
-
-# %%
-bank_amount_sum=bank_amount.groupby('postedOn').sum()
-# %%
-bank_amount_sum_plots=DataPlot(df=bank_amount_sum)
-# bank_amount_sum_plots.plot1()
-# bank_amount_sum_plots.shift_plot('amount')
-# bank_amount_sum_plots.pct_change_plot('amount',yscale='log')
-# bank_amount_sum_plots.expanding_window('amount')
-# bank_amount_sum.plot(kind='bar')
-
-# %%
-
-# %%
-bank_amount_weekly=bank.resample(freq='W')
-
-# %%
-bank_amount_weekly_plots=DataPlot(df=bank_amount_weekly)
-# %%
-# %%
-bank_amount_weekly_plots.expanding_window('amount')
-# %%
-
-
-
-bank_amount_weekly_analysis=TSAnalysis(df=bank_amount_weekly)
-
-# %%
-bank_amount_weekly_analysis.decompose('amount')
 
 
 # %%
+# bank=RawData(datafile=data_file,index_col='postedOn')
+# %%
+apha=RawData(datafile=data_file,index_col='Date')
+# %%
+apha_plots=DataPlot(df=apha.df)
+
+
+apha_2020=apha.data_sub_set('2020','2020',cols='Adj Close')
+
 plt.show()
 # %%
+apha_2020_plots=DataPlot(df=apha_2020)
+# %%
+apha_2020_plots.rolling_window('Adj Close',20)
+# %%
+
+plt.show()
