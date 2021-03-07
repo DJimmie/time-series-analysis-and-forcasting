@@ -1,4 +1,7 @@
 # %%
+from statsmodels.tsa.seasonal import STL
+from pandas.plotting import register_matplotlib_converters
+from statsmodels.tsa.arima.model import ARIMA
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,8 +15,7 @@ from pylab import rcParams
 import statsmodels.api as sm
 rcParams['figure.figsize'] = 11, 9
 
-from statsmodels.tsa.seasonal import STL
-from pandas.plotting import register_matplotlib_converters
+
 
 sys.path.insert(0,"C:\\Users\\dowdj\\OneDrive\\Documents\\GitHub\\my-modules-and-libraries\\program_work_dir")  # Temporary. Used to help finish development of modules.
 import program_work_dir as pwd
@@ -60,7 +62,6 @@ class RawData():
 
         subset=pd.DataFrame(self.subset)
         print(subset.head())
-        
         return subset
 
     def resample(self,freq):
@@ -244,6 +245,12 @@ class TSAnalysis():
 
 # %%
 
+def arima(data):
+    model = ARIMA(data['Close'], order=(1,1,1))
+    model_fit = model.fit()
+    # make prediction
+    yhat = model_fit.predict(len(data), len(data)+5)
+    print(yhat)
 
 ## FUNCTIONS----------------------------------FUNCTIONS----------------------------------FUNCTIONS
 def get_config_values(section,option):
@@ -277,6 +284,9 @@ data_file=f'c:/my_python_programs/{client}/{data}'
 apha=RawData(datafile=data_file,index_col='Date')
 # %%
 apha_plots=DataPlot(df=apha.df)
+
+arima(apha.df)
+print(apha.df.tail())
 
 
 apha_2020=apha.data_sub_set('2020','2020',cols='Adj Close')
