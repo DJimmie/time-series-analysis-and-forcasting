@@ -1,5 +1,5 @@
 """ Dependancies supporting the tsa_stocks.py program"""
-
+# %%
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,6 +8,15 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.arima_model import ARIMA
 import statistics
+
+from random import seed
+from random import random
+from statsmodels.tsa.stattools import adfuller
+
+from sklearn.metrics import mean_squared_error
+
+from math import sqrt
+
 
 import os
 import sys
